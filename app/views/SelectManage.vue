@@ -142,7 +142,13 @@
             softConfig() {
                 let that = this;
                 ipc.once("readFileResult", function (e,result) {
-                    console.log(result);
+                    if(result.state == 1){
+                        that.$store.dispatch("INITSOFT", result.data);
+                    }else {
+                        that.$store.dispatch("INITSOFT");
+                        ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
+                    }
+                    that.manageArr = that.$store.getters.getManageList;
                 });
                 ipc.send("readConfigFile","softConfig.config");
             },

@@ -5,13 +5,13 @@
 const configOperate = require('./config-operate');
 
 let eventList = {
-    initConfig: function (event,data) {
-        configOperate.readFromFile('softConfig.config').then(function (result) {
-            if(!result.state){
-                configOperate.saveToFile("softConfig.config", data);
-            }
-        });
-    },
+    // initConfig: function (event,data) {
+    //     configOperate.readFromFile('softConfig.config').then(function (result) {
+    //         if(!result.state){
+    //             configOperate.saveToFile("softConfig.config", data);
+    //         }
+    //     });
+    // },
     readConfigFile: function (event,path) {
         configOperate.readFromFile(path).then(function (result) {
             event.sender.send("readFileResult", result);

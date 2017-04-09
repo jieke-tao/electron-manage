@@ -5,7 +5,7 @@
     "main": "main.js",
     "scripts": {
         "clean": "rimraf dist",
-        "package": "electron-packager ./ test --win --out caceshi --version=1.3.14 --overwrite --ignore node_modules",
+        "package": "electron-packager ./ electron-manage --win --out electron-manage --version=1.3.14 --overwrite --ignore node_modules",
         "build": "npm run clean && webpack --config build/webpack.prod.js",
         "dev": "node build/server.js",
         "app": "cross-env NODE_ENV=development electron ."
