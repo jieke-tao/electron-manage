@@ -27,11 +27,15 @@ const mutations = {
             manageId: new Date().valueOf(),
             manageName: dataObj.name,
             createTime: new Date(),
+            lastOpenTime: new Date(),
             sortFolder: dataObj.source,
-            TargetFolder: dataObj.target,
+            targetFolder: dataObj.target,
             remark: dataObj.remark,
             mainTag: []
         });
+    },
+    DELETEMANAGE(state,index) {
+        state.softConfig.manageList.splice(index,1);
     }
 };
 

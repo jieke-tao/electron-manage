@@ -6,7 +6,7 @@ const actions = {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 commit('INITSOFT',data);
-                resolve()
+                resolve();
             }, 200)
         });
     },
@@ -14,9 +14,17 @@ const actions = {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 commit('ADDMANAGE',data);
-                resolve()
+                resolve();
             }, 200)
         });
+    },
+    delManage({commit}, index) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                commit("DELETEMANAGE",index);
+                resolve();
+            },200);
+        })
     }
 };
 

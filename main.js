@@ -8,6 +8,7 @@ const path = require('path');
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
 global.dialog = electron.dialog;
+//global.Vue = require('Vue');
 const eventList = require('./app/connect/main-progress-event');
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -28,8 +29,8 @@ function createWindow() {
     mainWindow = new BrowserWindow({width: 800, height: 600});
 
     // and load the index.html of the app.
-    // const url = !isDev ? `http://localhost:${config.port}/dist` : `file://${__dirname}/dist/index.html`;
-    const url = `file://${__dirname}/dist/index.html`;
+     const url = isDev ? `http://localhost:${config.port}` : `file://${__dirname}/dist/index.html`;
+    //const url = `file://${__dirname}/dist/index.html`;
     mainWindow.loadURL(url);
 
     // Open the DevTools.

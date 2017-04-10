@@ -1,32 +1,56 @@
 <template>
     <div class="cleanfix root-node">
         <ul class="manege-list">
-            <li v-for="item of manageArr">
+            <li v-for="(item,index) of manageArr"
+                :class="{'active': item.manageId == focusManageDetail.manageId}"
+                @click="focusManage(index)">
                 <a v-text="item.manageName"></a>
                 <div class="cleanfix">
                     <span class="remark-box" v-text="item.remark" :title="item.remark"></span>
-                    <span class="target-box" v-text="item.TargetFolder" :title="item.TargetFolder"></span>
+                    <span class="target-box" v-text="item.targetFolder" :title="item.targetFolder"></span>
                 </div>
             </li>
         </ul>
         <div class="manage-detail">
-            <div>
+            <div class="cleanfix">
                 <div class="float-right">
-                    <Button type="primary" @click="openManage">打开</Button>
-                    <Button type="primary" @click="openAddModal">新增</Button>
-                    <Button type="primary" @click="openAddModal">删除</Button>
+                    <Button type="primary" icon="home" @click="openManage" v-show="manageArr.length">打开</Button>
+                    <Button icon="plus" @click="openAddModal">新增</Button>
+                    <Button icon="trash-b" @click="deleteManage" v-show="manageArr.length">删除</Button>
                 </div>
             </div>
-            <div>
-                <span></span>
-                <span></span>
-            </div>
+            <ul class="detail-list" v-show="focusManageDetail.manageId">
+                <li>
+                    <span class="title-text">管理层名：</span>
+                    <span class="content-text" v-text="focusManageDetail.manageName"></span>
+                </li>
+                <li>
+                    <span class="title-text">源文件夹：</span>
+                    <span class="content-text" :title="focusManageDetail.sortFolder">{{ focusManageDetail.sortFolder | toString }}</span>
+                </li>
+                <li>
+                    <span class="title-text">目标文件夹：</span>
+                    <span class="content-text" v-text="focusManageDetail.targetFolder" :title="focusManageDetail.targetFolder"></span>
+                </li>
+                <li>
+                    <span class="title-text">上次使用1：</span>
+                    <span class="content-text">{{ focusManageDetail.lastOpenTime | formatDate(true,"/") }}</span>
+                </li>
+                <li>
+                    <span class="title-text">备注：</span>
+                    <span class="content-text" v-text="focusManageDetail.remark"></span>
+                </li>
+                <li>
+                    <span class="title-text">主要标签：</span>
+                    <tag v-for="item in focusManageDetail.mainTag"></tag>
+                    <span class="content-text" v-if="!(focusManageDetail.mainTag && focusManageDetail.mainTag.length)">尚未开始整理，无法统计</span>
+                </li>
+            </ul>
         </div>
         <Modal
             v-model="showAdd"
             title="新增管理层"
-            @on-ok="confirmAdd"
-            @on-cancel="cancel">
+            @on-ok="confirmAdd">
             <div class="form-group">
                 <span>管理层名</span>
                 <Input v-model="manageName"></Input>
@@ -74,6 +98,7 @@
         data () {
             return {
                 manageArr: [],
+                focusManageDetail: {},
                 showAdd: false,
                 manageName: "",
                 sourceFolder: [],
@@ -135,53 +160,43 @@
             deleteSourceFolder(index) {
                 this.sourceFolder.splice(index,1);
             },
+            focusManage(index) {
+                this.focusManageDetail = this.manageArr[index];
+            },
+            deleteManage() {
+                let manageId = this.focusManageDetail.manageId;
+                let manageIndex = -1;
+                let that = this;
+                this.manageArr.some(function(v,i){
+                    if(v.manageId == manageId){
+                        manageIndex = i;
+                        return true;
+                    }
+                });
+                this.manageArr.splice(manageIndex,1);
+                this.$store.dispatch("delManage",manageIndex).then(function(){
+                    ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
+                });
+            },
             openManage() {
                 console.log(this.manageArr);
             },
 
             softConfig() {
                 let that = this;
+                let promise;
                 ipc.once("readFileResult", function (e,result) {
                     if(result.state == 1){
-                        that.$store.dispatch("INITSOFT", result.data);
+                        promise = that.$store.dispatch("initSoftConfig", result.data);
                     }else {
-                        that.$store.dispatch("INITSOFT");
+                        promise = that.$store.dispatch("initSoftConfig");
                         ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
                     }
-                    that.manageArr = that.$store.getters.getManageList;
+                    promise.then(function(){
+                        that.manageArr = that.$store.getters.getManageList;
+                    });
                 });
                 ipc.send("readConfigFile","softConfig.config");
-            },
-
-
-            aa () {
-                alert("写内容：");
-                var fileN = __dirname+'/message.config';
-                alert("文件名："+fileN);
-                fs.writeFileSync(fileN,"dsad", 'utf8');
-                console.log("写完成！");
-            },
-            bb () {
-               configFileOperate.readFromFile('./softConfig.config').then(
-                   function (a) {
-                       alert(JSON.stringify(a));
-                   }
-               );
-
-            },
-            cc () {
-//                const {dialog} = require('electron').remote;
-//                var a = dialog.showOpenDialog({
-//                    properties: ["openDirectory"]
-//                });
-//                console.log(a);
-            },
-            zz () {
-                this.$Notice.open({
-                    title: "123"
-                });
-                alert(1);
-                this.$Message.error("123");
             }
         },
         computed: {
@@ -189,17 +204,17 @@
                 return this.sourceFolder.length ? '已选' + this.sourceFolder.length + '项' : ''
             }
         },
+        watch: {
+            manageArr(newArr) {
+                if(newArr.length){
+                    this.focusManage(0);
+                }else {
+                    this.focusManageDetail = {};
+                }
+            }
+        },
         mounted: function () {
-
-//            ipc.send("readConfigFile","softConfig.config").then(function (result) {
-//                console.log("av");
-//                console.log(result);
-//            });
             this.softConfig();
-//            this.$store.dispatch("initSoftConfig").then(function () {
-//                ipc.send("initConfig",that.$store.getters.getSoftConfig);
-//                that.manageArr = that.$store.getters.getManageList;
-//            });
         }
 
     }
@@ -221,13 +236,16 @@
     .manege-list{
         width: 35%;
         height: 100%;
-        padding: 0 10px;
         float: left;
     }
     .manege-list > li{
         padding: 10px;
         border-bottom: 1px solid #eee;
         cursor: pointer;
+        border-left: 3px solid transparent;
+    }
+    .manege-list > li.active{
+        border-left-color: #3091f2;
     }
     .manege-list > li > a{
         padding-bottom: 7px;
@@ -259,5 +277,31 @@
         overflow: hidden;
         text-overflow: ellipsis;
         color: #aaaaaa;
+    }
+    .detail-list{
+        margin-top: 100px;
+        margin-left: 25px;
+    }
+    .detail-list > li{
+        margin-bottom: 25px;
+        white-space: nowrap;
+    }
+    .title-text{
+        display: inline-block;
+        width: 100px;
+        text-align: right;
+        vertical-align: middle;
+        font-size: 15px;
+    }
+    .content-text{
+        width: calc(100% - 120px);
+        padding: 3px 10px;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: middle;
+        text-overflow: ellipsis;
+        border-bottom: 1px solid #cccccc;
     }
 </style>
