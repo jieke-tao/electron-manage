@@ -3,3 +3,9 @@
 
 # 进度
 该项目仍处于开发阶段，尚不可使用
+
+# 进度图
+
+![选择管理层](./doc/img/select.png)
+![新增管理层](./doc/img/add.png)
+![选择文件夹](./doc/img/chose-flode.png)
