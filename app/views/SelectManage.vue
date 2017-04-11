@@ -33,7 +33,7 @@
                     <span class="content-text" v-text="focusManageDetail.targetFolder" :title="focusManageDetail.targetFolder"></span>
                 </li>
                 <li>
-                    <span class="title-text">上次使用1：</span>
+                    <span class="title-text">上次使用：</span>
                     <span class="content-text">{{ focusManageDetail.lastOpenTime | formatDate(true,"/") }}</span>
                 </li>
                 <li>
@@ -179,7 +179,12 @@
                 });
             },
             openManage() {
-                console.log(this.manageArr);
+                this.$router.push({
+                    path: "main",
+                    query: {
+                        manageId: this.focusManageDetail.manageId
+                    }
+                });
             },
 
             softConfig() {

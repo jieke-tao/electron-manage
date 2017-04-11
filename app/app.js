@@ -2,10 +2,10 @@ import Vue from 'vue'
 import { sync } from 'vuex-router-sync'
 import App from './components/App/App.vue'
 import router from './router'
-import Filter from './filter'
+import vuePlugin from './plugin'
 import store from './store'
 
-Filter(Vue);
+Vue.use(vuePlugin);
 sync(store, router);
 const app = new Vue({
     ...App,

@@ -8,8 +8,6 @@ const state = {
         lastManage: "",
         lastStart: "",
         softPw: "",
-        manageType: "",
-        targetPath: "",
         manageList: []
     }
 };

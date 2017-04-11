@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import selectManage from '../views/SelectManage.vue'
+import main from '../views/Main.vue'
 import iView from 'iview'
 import 'iview/dist/styles/iview.css'
 
@@ -13,6 +14,10 @@ export default new Router({
         {
             path: '/',
             component: selectManage
+        },
+        {
+            path: '/main',
+            component: main
         }
     ]
 })

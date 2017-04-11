@@ -8,7 +8,6 @@ const path = require('path');
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
 global.dialog = electron.dialog;
-//global.Vue = require('Vue');
 const eventList = require('./app/connect/main-progress-event');
 
 // Keep a global reference of the window object, if you don't, the window will

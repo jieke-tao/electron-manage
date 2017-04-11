@@ -4,8 +4,8 @@
  * description : index
  */
 
-export default function (vue){
-    vue.filter("toString", function (value) {
+export default function (Vue){
+    Vue.filter("toString", function (value) {
         if(value){
             return value.toString();
         }else {
@@ -13,7 +13,7 @@ export default function (vue){
         }
     });
 
-    vue.filter("formatDate", function (value,timeFlag,symbol) {
+    Vue.filter("formatDate", function (value,timeFlag,symbol) {
         let date;
         try{
             date = new Date(value);

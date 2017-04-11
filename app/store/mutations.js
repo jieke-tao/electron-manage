@@ -15,8 +15,6 @@ const mutations = {
                 lastStart: new Date().valueOf(),
                 lastManage: "",
                 softPw: "",
-                manageType: "1",
-                targetPath: "",
                 manageList: []
             }
         }
