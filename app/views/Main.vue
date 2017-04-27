@@ -41,7 +41,7 @@
                         <Icon size="16" type="navicon-round"></Icon>
                         菜单
                     </dt>
-                    <dd>切换管理层</dd>
+                    <dd @click="switchManage">切换管理层</dd>
                     <dd>更新文档</dd>
                     <dd>归档</dd>
                     <!--<hr />-->
@@ -67,13 +67,18 @@
                 </dl>
             </div>
             <div v-show="!showSystemSetting" class="content-detail">
-                <dl class="menu-list">
+
+                <tree :data="fileListData"></tree>
+
+                <dl class="menu-list" style="display: none">
                     <dt>
                         <Icon size="16" type="folder"></Icon>
                         文件夹名
                     </dt>
                     <dd>文件名1</dd>
-                    <dd>文件名2</dd>
+                    <dd>
+                        <dl></dl>
+                    </dd>
                     <dd>文件名3</dd>
                     <dd>文件名4</dd>
                     <dd>文件名5</dd>
@@ -82,16 +87,29 @@
                 </dl>
             </div>
         </div>
-        <div class="content-right"></div>
+        <div class="content-right">
+            <!--<Button @click="scanFile" type="primary">文件扫描测试</Button>-->
+            <!--<Button @click="getDBData" type="primary">222</Button>-->
+            <!--<Button @click="test22" type="primary">重新注入数据</Button>-->
+            <!--<Button @click="test112" type="primary">222</Button>-->
+            <!--<Button @click="test11" type="primary">2222</Button>-->
+
+            <div id="a"></div>
+        </div>
     </div>
 
 </template>
 <script>
 
+    import tree from '../components/main/Tree.vue'
     import store from 'vuex'
     import { ipcRenderer as ipc } from 'electron'
+    import b from '../../tests/12';
 
     export default{
+        components: {
+            tree
+        },
         data () {
             return {
                 manageId: "",
@@ -100,7 +118,11 @@
                 showSystemSetting: false,
                 structureType: 3,
                 searchKey: "",
-                searchType: ["1","2","3","4","5"]
+                searchType: ["1","2","3","4","5"],
+                dbStore: {
+                    instance: {}
+                },
+                fileListData: []
             }
         },
         methods: {
@@ -108,27 +130,237 @@
                 this.menuBarActive = "";
             },
             menuBarClick(num) {
-                if(this.menuBarActive == num){
+                if(this.menuBarActive === num){
                     this.menuBarActive = "";
                 }else {
                     this.menuBarActive = num;
                 }
             },
-            softConfig() {
-                let that = this;
-                let promise;
-                ipc.once("readFileResult", function (e,result) {
-                    if(result.state == 1){
-                        promise = that.$store.dispatch("initSoftConfig", result.data);
-                    }else {
-                        promise = that.$store.dispatch("initSoftConfig");
-                        ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
-                    }
-                    promise.then(function(){
-                        that.manageArr = that.$store.getters.getManageList;
-                    });
+            switchManage() {
+                this.closeDB();
+                this.$router.go(-1);
+            },
+            arrDataToTree(arrData) {
+                let result = [];
+                arrData.forEach(v => {
+                   if(v.parentPath){
+                       let index = -1;
+                       arrData.some((v1,i1) => {
+                           if(v1.sourcePath == v.parentPath){
+                               index = i1;
+                               return true;
+                           }
+                       });
+                       if(index == -1){
+                           result.push(v);
+                       }else {
+                           if(!arrData[index].children){
+                               arrData[index].children = [];
+                           }
+                           arrData[index].children.push(v);
+                       }
+                   }else {
+                       result.push(v);
+                   }
                 });
-                ipc.send("readConfigFile","softConfig.config");
+                return result;
+            },
+
+            scanFile() {
+                let that = this;
+                ipc.once("scanFolderResult",function (e,result) {
+                    that.updateFileList(result);
+                });
+                ipc.send("scanFolder",this.manageDetail.sortFolder);
+            },
+            closeDB(name) {
+                this.dbStore.instance.close();
+            },
+            initDB(name,version = 1) {
+                return new Promise(resolve => {
+                    let request = window.indexedDB.open(name,version);
+                    let that = this;
+                    request.onerror=function(e){
+                        console.log(e.currentTarget.error.message);
+                    };
+                    request.onsuccess=function(e){
+                        that.dbStore.instance = e.target.result;
+                        resolve();
+                    };
+                    request.onupgradeneeded = function(e){
+                        that.dbStore.instance = e.target.result;
+                        console.log('DB version changed to ' + version);
+                        that.addStore();
+                    };
+                });
+
+            },
+            addStore() {
+                if(!this.dbStore.instance.objectStoreNames.contains("fileBase")){
+                    let baseInfo = this.dbStore.instance.createObjectStore("fileBase",{ keyPath: 'id', autoIncrement : true });
+                    baseInfo.createIndex("typeIndex","type",{ unique: false });
+                    baseInfo.createIndex('isDeleteIndex',"isDelete",{ unique: false });
+                    baseInfo.createIndex('extIndex',"ext",{ unique: false });
+                }
+                if(!this.dbStore.instance.objectStoreNames.contains("fileExtend")){
+                    let baseInfo = this.dbStore.instance.createObjectStore("fileExtend",{ keyPath: 'id',autoIncrement : true });
+                    baseInfo.createIndex("idIndex","id",{ unique: true });
+                    baseInfo.createIndex('isDeleteIndex',"isDelete",{ unique: false });
+                    baseInfo.createIndex('tagIndex',"tag",{ unique: false });
+                    baseInfo.createIndex('pathIndex',"sourcePath",{ unique: false });
+                }
+            },
+            updateFileList(newData) {
+                //1,拿到新的文件列表
+                //1.5判断是否存在数据库；存在2-3-4-5，不存在新建
+                //2,清除两个表中的delete为-1的数据
+                //3，将2表中所有文件的delete设为-1
+                //4，按路径遍历新的文件列表，存在则delete设为1
+                //5，重组新的数据返回渲染
+                let that = this;
+                let asyncCallback = "";
+                if(!this.dbStore.instance.objectStoreNames.contains("fileBase")){
+                    asyncCallback = new Promise(resolve => {
+                        this.addStore();
+                        resolve([]);
+                    });
+                }else{
+                    asyncCallback = new Promise(resolve => {
+                        this.delAllInvalid();
+                        this.searchValueByKey("fileExtend","isDeleteIndex",0).then(result => {
+                            result.forEach(v => {
+                                that.updateDataById("fileExtend",v.id,1,"isDelete");
+                                that.updateDataById("fileBase",v.id,1,"isDelete");
+                            });
+                            resolve(result);
+                        });
+                    })
+                }
+                asyncCallback.then(hasData => {
+                    newData.forEach(v => {
+                        let flag = -1;
+                        hasData.some((v1,i1) => {
+                            if(v1.sourcePath == v.sourcePath){
+                                flag = i1;
+                                return true;
+                            }
+                        });
+                        if(flag == -1){
+                            that.saveDBData("fileBase",v);
+                            that.saveDBData("fileExtend",v);
+                        }else {
+                            that.updateDataById("fileBase",hasData[flag].id,v);
+                            that.updateDataById("fileExtend",hasData[flag].id,0,"isDelete");
+                        }
+                    });
+                } );
+
+            },
+            saveDBData(storeName,data) {
+                if(data){
+                    let transaction = this.dbStore.instance.transaction(storeName,"readwrite");
+                    let store=transaction.objectStore(storeName);
+                    store.add(data);
+                }
+            },
+            //根据键值查询所有的数据（仅限一一对应值）
+            searchValueByKey(storeName,searchIndex,value) {
+                return new Promise(resolve => {
+                    let transaction = this.dbStore.instance.transaction(storeName);
+                    let store = transaction.objectStore(storeName);
+                    let request = store.index(searchIndex).openCursor(IDBKeyRange.only(value));
+                    let result = [];
+                    request.onsuccess = function(e){
+                        let cursor = e.target.result;
+                        if(cursor){
+                            result.push(cursor.value);
+                            cursor.continue();
+                        }else {
+                            resolve(result);
+                        }
+                    };
+                });
+            },
+            //根据键值查询所有的数据（范围查询,含边界值）
+            searchValueByArea(storeName,searchIndex,begin = -1,end = -1) {
+                let transaction = this.dbStore.instance.transaction(storeName);
+                let store = transaction.objectStore(storeName);
+                let index = searchIndex ? store.index(searchIndex) : "";
+                let request;
+                let result = [];
+
+                return new Promise(resolve => {
+                    if(begin == -1 && end == -1){
+                        request = store.openCursor();
+                    }else if(begin == -1){
+                        request = index.openCursor(IDBKeyRange.upperBound(end,true));
+                    }else if(end == -1){
+                        request = index.openCursor(IDBKeyRange.lowerBound(begin,true));
+                    }
+
+                    request.onsuccess = function(e){
+                        let cursor = e.target.result;
+                        if(cursor){
+                            console.log(cursor);
+                            result.push(cursor.value);
+                            cursor.continue();
+                        }else {
+                            resolve(result);
+                        }
+                    };
+                });
+            },
+            //删除表中delete为-1的值
+            delAllInvalid() {
+                let that = this;
+                this.searchValueByKey("fileExtend","isDeleteIndex",1).then((collectResult) => {
+                    collectResult.forEach(v => {
+                        that.delDataById("fileBase",v.id);
+                        that.delDataById("fileExtend",v.id);
+                    })
+                });
+            },
+            //根据id删除表中的数据
+            delDataById(storeName,id) {
+                let transaction = this.dbStore.instance.transaction(storeName,'readwrite');
+                let store = transaction.objectStore(storeName);
+                store.delete(id);
+            },
+            //根据id更新数据
+            updateDataById(storeName,id,value,key) {
+                let transaction = this.dbStore.instance.transaction(storeName,'readwrite');
+                let store = transaction.objectStore(storeName);
+                let request = store.get(id);
+                request.onsuccess=function(e){
+                    let dataDetail = e.target.result;
+                    if(key){
+                        dataDetail[key] = value;
+                    }else {
+                        Object.keys(value).forEach(v => {
+                            dataDetail[v] = value[v];
+                        })
+                    }
+                    store.put(dataDetail);
+                };
+            },
+            //从数据库提取所有数据
+            getDBData() {
+                let that = this;
+                this.searchValueByArea("fileBase").then(result => {
+                    that.fileListData = that.arrDataToTree(result);
+//                    console.log(JSON.stringify(that.fileListData));
+                });
+            },
+            test22() {
+                this.fileListData = b;
+            }
+        },
+        computed: {
+            manageDetail() {
+                let result = this.$store.getters.getManageList.filter(v => {
+                    return v.manageId === this.manageId;
+                });
+                return result.length ? result[0] : [];
             }
         },
         beforeRouteEnter(to, from, next) {
@@ -139,7 +371,19 @@
                 });
             }
         },
+        watch: {
+            manageId(newValue) {
+                this.initDB("manage" + newValue).then(() => {
+                    if(!this.fileListData.length){
+//                        this.scanFile();
+//                        this.getDBData();
+                    }
+                });
+            }
+        },
         mounted: function () {
+
+            this.fileListData = b;
         }
 
     }
@@ -199,7 +443,12 @@
     }
     .system-menu,
     .content-detail{
-        padding: 15px 20px;
+        width: 100%;
+        padding: 10px;
+        overflow: auto;
+        position: absolute;
+        top: 37px;
+        bottom: 0;
     }
     .menu-list{
         font-size: 13px;

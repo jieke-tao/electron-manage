@@ -8,7 +8,7 @@ const path = require('path');
 const BrowserWindow = electron.BrowserWindow;
 const ipc = electron.ipcMain;
 global.dialog = electron.dialog;
-const eventList = require('./app/connect/main-progress-event');
+const eventList = require('./app/connect/main-progress/main-progress-event');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

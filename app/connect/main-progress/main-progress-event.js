@@ -3,6 +3,7 @@
  */
 
 const configOperate = require('./config-operate');
+const fs = require('fs');
 
 let eventList = {
     readConfigFile: function (event,path) {
@@ -18,6 +19,13 @@ let eventList = {
             properties: ["openDirectory"]
         });
         event.sender.send("selectResult", result);
+    },
+    scanFolder: function (event, folderList) {
+        let result = [];
+        (folderList || []).forEach(function (folder) {
+            result = result.concat(configOperate.scanFolder(folder,[]));
+        },this);
+        event.sender.send("scanFolderResult", result);
     }
 };
 
