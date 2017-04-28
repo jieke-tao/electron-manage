@@ -6,8 +6,6 @@
 
 # 进度图
 
-![选择管理层](./doc/img/select.png)
-![新增管理层](./doc/img/add.png)
-![选择文件夹](./doc/img/chose-flode.png)
-![主界面设置](./doc/img/main-setting.png)
-![主界面设置](./doc/img/scan-file.png)
+<img src="./doc/img/select.png" width="50%" /><img src="./doc/img/add.png" width="50%" />
+<img src="./doc/img/chose-flode.png" width="50%" /><img src="./doc/img/main-setting.png" width="50%" />
+<img src="./doc/img/scan-file.png" width="50%" />

@@ -1,18 +1,17 @@
 <template>
     <div :style="{ 'paddingLeft': deep * 10 + 'px' }">
-        <div class="tree-box" v-for="(item,index) in data">
-            <div class="tree-folder" :title="item.sourcePath" @click="switchChildOpen">
-                <i v-if="item.ext == 'dir'" :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
-                <i v-else :class="['ivu-icon',computerIco(item.ext)]"></i>
-                <span class="tree-name" v-text="item.name"></span>
+        <div class="tree-box">
+            <div class="tree-folder" :title="data.sourcePath" @click="switchChildOpen">
+                <i v-if="data.ext == 'dir'" :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
+                <i v-else :class="['ivu-icon',computerIco(data.type)]"></i>
+                <span class="tree-name" v-text="data.name"></span>
                 <div></div>
             </div>
-            <tree v-if="item.children && item.children.length" v-show="open" :data="item.children" :deep="deep+1"></tree>
+            <tree v-if="data.children && data.children.length" v-for="item in data.children" v-show="open" :data="item" :deep="deep+1"></tree>
         </div>
     </div>
 </template>
 <script>
-
 
     export default{
         name: "tree",
@@ -21,7 +20,7 @@
                 type: Number,
                 default: 0
             },
-            data: Array
+            data: Object
         },
         data(){
             return {
@@ -33,19 +32,25 @@
                 this.open = !this.open;
             },
             computerIco(type) {
-                let imgExt = ["jpg","png","gif","jpeg","psd"];
-                let movieExt = ["mpg","mp4","avi","mov","wmv","3gp","mkv","flv","rmvb","f4v"];
-                let musicExt = ["mp3","midi","wma","ogg","wav","flac","ape"];
-
-                type = type.toLowerCase();
-                if(imgExt.indexOf(type) !== -1){
-                    return "ivu-icon-image";
-                }else if(movieExt.indexOf(type) !== -1){
-                    return  "ivu-icon-social-youtube";
-                }else if(musicExt.indexOf(type) !== -1){
-                    return "ivu-icon-music-note";
-                }else {
-                    return "ivu-icon-document";
+                switch (type){
+                    case "image":
+                        return "ivu-icon-image";
+                        break;
+                    case "video":
+                        return "ivu-icon-image";
+                        break;
+                    case "music":
+                        return "ivu-icon-music-note";
+                        break;
+                    case "document":
+                        return "ivu-icon-document-text";
+                        break;
+                    case "compress":
+                        return "ivu-icon-social-buffer";
+                        break;
+                    case "others":
+                        return "ivu-icon-document";
+                        break;
                 }
             }
         }
@@ -65,7 +70,7 @@
         padding: 3px 0;
     }
     .tree-box i.ivu-icon{
-        font-size: 14px;
+        font-size: 15px;
         vertical-align: middle;
     }
     .tree-folder{

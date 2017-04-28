@@ -65,7 +65,7 @@ const scanFolder = (filePath,result) => {
         if(pathCheck === -1){
             result.push({
                 name: path.basename(filePath),
-                type: -1,
+                category: -1,
                 size: -1,
                 sourcePath: filePath,
                 parentPath: "",
@@ -77,7 +77,7 @@ const scanFolder = (filePath,result) => {
             if(pathCheck.isFile()){
                 result.push({
                     name: path.basename(filePath),
-                    type: "file",
+                    category: "file",
                     size:  pathCheck.size,
                     sourcePath: filePath,
                     parentPath: path.dirname(filePath),
@@ -88,7 +88,7 @@ const scanFolder = (filePath,result) => {
             }else {
                 result.push({
                     name: path.basename(filePath),
-                    type: "dir",
+                    category: "dir",
                     size:  pathCheck.size,
                     sourcePath: filePath,
                     parentPath: path.dirname(filePath),
