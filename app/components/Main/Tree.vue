@@ -4,10 +4,10 @@
             <div class="tree-folder" :title="data.sourcePath" @click="switchChildOpen">
                 <i v-if="data.ext == 'dir'" :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
                 <i v-else :class="['ivu-icon',computerIco(data.type)]"></i>
-                <span class="tree-name" v-text="data.name"></span>
+                <span class="tree-name" v-html="data.name"></span>
                 <div></div>
             </div>
-            <tree v-if="data.children && data.children.length" v-for="item in data.children" v-show="open" :data="item" :deep="deep+1"></tree>
+            <tree v-if="data.children && data.children.length" v-for="item in data.children" :key="item.createTime" v-show="open" :data="item" :deep="deep+1"></tree>
         </div>
     </div>
 </template>

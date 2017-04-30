@@ -10,13 +10,14 @@
                     <Icon size="20" type="funnel"></Icon>
                     <div class="extend-box filter-box" @click.stop="" v-show="menuBarActive == 2">
                         <i class="nav-ico"></i>
-                        <Input v-model="searchKey" icon="ios-search" placeholder="输入关键字进行过滤"></Input>
-                        <Checkbox-group v-model="searchType">
-                            <Checkbox label="1">图片</Checkbox>
-                            <Checkbox label="2">音频</Checkbox>
-                            <Checkbox label="3">视频</Checkbox>
-                            <Checkbox label="4">其他</Checkbox>
-                            <Checkbox label="5">文件夹</Checkbox>
+                        <Input v-model="searchKey" icon="ios-search" placeholder="输入关键字进行过滤" onEnter="setFileListData"></Input>
+                        <Checkbox-group v-model="searchType" @on-change="setFileListData">
+                            <Checkbox label="image">图片</Checkbox>
+                            <Checkbox label="music">音频</Checkbox>
+                            <Checkbox label="video">视频</Checkbox>
+                            <Checkbox label="document">文档</Checkbox>
+                            <Checkbox label="compress">压缩文件</Checkbox>
+                            <Checkbox label="others">其它</Checkbox>
                         </Checkbox-group>
                     </div>
                 </li>
@@ -27,11 +28,10 @@
                     <Icon size="20" type="android-folder-open"></Icon>
                     <div class="extend-box displayType-box" @click.stop="" v-show="menuBarActive === 4">
                         <i class="nav-ico"></i>
-                        <Radio-group v-model="structureType" vertical>
-                            <Radio label="1">仅文件</Radio>
-                            <Radio label="2">仅文件夹</Radio>
-                            <Radio label="3">文件夹 + 文件</Radio>
-                        </Radio-group >
+                        <Checkbox-group v-model="structureType" vertical @on-change="setFileListData">
+                            <Checkbox label="file">文件</Checkbox>
+                            <Checkbox label="dir">文件夹</Checkbox>
+                        </Checkbox-group >
                     </div>
                 </li>
             </ul>
@@ -67,43 +67,21 @@
                 </dl>
             </div>
             <div v-show="!showSystemSetting" class="content-detail">
-
-                <tree :data="fileListData"></tree>
-
-                <dl class="menu-list" style="display: none">
-                    <dt>
-                        <Icon size="16" type="folder"></Icon>
-                        文件夹名
-                    </dt>
-                    <dd>文件名1</dd>
-                    <dd>
-                        <dl></dl>
-                    </dd>
-                    <dd>文件名3</dd>
-                    <dd>文件名4</dd>
-                    <dd>文件名5</dd>
-                    <dd>文件名6</dd>
-                    <dd>文件名7</dd>
-                </dl>
+                <tree v-for="item in fileListData" :key="item.createTime" :data="item"></tree>
             </div>
         </div>
         <div class="content-right">
-            <!--<Button @click="scanFile" type="primary">文件扫描测试</Button>-->
-            <!--<Button @click="getDBData" type="primary">222</Button>-->
-            <!--<Button @click="test22" type="primary">重新注入数据</Button>-->
-            <!--<Button @click="test112" type="primary">222</Button>-->
-            <!--<Button @click="test11" type="primary">2222</Button>-->
 
             <div id="a"></div>
         </div>
     </div>
-
 </template>
 <script>
 
     import tree from '../components/main/Tree.vue'
     import store from 'vuex'
     import { ipcRenderer as ipc } from 'electron'
+    import { computeFileType } from '../utils'
     import b from '../../tests/12';
 
     export default{
@@ -116,12 +94,13 @@
                 menuBarShow: true,
                 menuBarActive: "",
                 showSystemSetting: false,
-                structureType: 3,
+                structureType: ["file","dir"],
                 searchKey: "",
-                searchType: ["1","2","3","4","5"],
+                searchType: ["image","music","video","document","compress","others"],
                 dbStore: {
                     instance: {}
                 },
+                fileListDataBak: [],
                 fileListData: []
             }
         },
@@ -168,10 +147,14 @@
 
             scanFile() {
                 let that = this;
-                ipc.once("scanFolderResult",function (e,result) {
-                    that.updateFileList(result);
+                return new Promise(resolve => {
+                    ipc.once("scanFolderResult",function (e,result) {
+                        that.updateFileList(result).then(() => {
+                            resolve();
+                        });
+                    });
+                    ipc.send("scanFolder",this.manageDetail.sortFolder);
                 });
-                ipc.send("scanFolder",this.manageDetail.sortFolder);
             },
             closeDB(name) {
                 this.dbStore.instance.close();
@@ -236,25 +219,30 @@
                         });
                     })
                 }
-                asyncCallback.then(hasData => {
-                    newData.forEach(v => {
-                        let flag = -1;
-                        hasData.some((v1,i1) => {
-                            if(v1.sourcePath == v.sourcePath){
-                                flag = i1;
-                                return true;
+
+                return new Promise(resolve => {
+                    asyncCallback.then(hasData => {
+                        newData.forEach(v => {
+                            let flag = -1;
+                            v.type = computeFileType(v.ext);
+                            hasData.some((v1,i1) => {
+                                if(v1.sourcePath == v.sourcePath){
+                                    flag = i1;
+                                    return true;
+                                }
+                            });
+                            if(flag == -1){
+                                that.saveDBData("fileBase",v);
+                                that.saveDBData("fileExtend",v);
+                            }else {
+                                that.updateDataById("fileBase",hasData[flag].id,v);
+                                that.updateDataById("fileExtend",hasData[flag].id,0,"isDelete");
                             }
                         });
-                        if(flag == -1){
-                            that.saveDBData("fileBase",v);
-                            that.saveDBData("fileExtend",v);
-                        }else {
-                            that.updateDataById("fileBase",hasData[flag].id,v);
-                            that.updateDataById("fileExtend",hasData[flag].id,0,"isDelete");
-                        }
-                    });
-                } );
 
+                        resolve();
+                    });
+                });
             },
             saveDBData(storeName,data) {
                 if(data){
@@ -301,7 +289,6 @@
                     request.onsuccess = function(e){
                         let cursor = e.target.result;
                         if(cursor){
-                            console.log(cursor);
                             result.push(cursor.value);
                             cursor.continue();
                         }else {
@@ -345,14 +332,59 @@
             },
             //从数据库提取所有数据
             getDBData() {
-                let that = this;
                 this.searchValueByArea("fileBase").then(result => {
-                    that.fileListData = that.arrDataToTree(result);
-//                    console.log(JSON.stringify(that.fileListData));
+                    this.fileListDataBak = JSON.stringify(result);//存储成字符串，避免引址
+                    this.setFileListData("",result);
                 });
             },
-            test22() {
-                this.fileListData = b;
+            //按条件过滤
+            filterFileList(arrData) {
+                let filter1 = this.structureType;
+                let filter2 = this.searchType;
+                let key = this.searchKey;
+                let result;
+
+                result = arrData.filter(v => {
+                    let flag1 = filter1.indexOf(v.category) !== -1;
+                    let flag2 = filter2.indexOf(v.type) !== -1;
+                    let flag3 = v.name.indexOf(key) !== -1;
+                    if(flag1 && flag2){
+                        if(key && flag3){
+                            v.name = v.name.replace(key,"<a>" + key + "</a>");
+                        }
+                        return true;
+                    }
+                });
+
+                return this.sortFileList(result);
+
+            },
+            sortFileList(arrData) {
+                //此处暂且仅做文件夹排序
+                if(this.structureType.indexOf("dir") !== -1){
+                    arrData.sort((prev,next) => {
+                        if(next.category === "file"){
+                            return -1;
+                        }else {
+                            return 1;
+                        }
+                    });
+                }
+
+                return arrData;
+            },
+            setFileListData(e,arrData) {
+                if(!(arrData && arrData.length)){
+                    arrData = JSON.parse(this.fileListDataBak);
+                }
+                console.log(arrData);
+                arrData = this.filterFileList(arrData);
+                console.log(arrData);
+                if(this.structureType.indexOf("dir") !== -1){
+                    arrData = this.arrDataToTree(arrData);
+                }
+                console.log(arrData);
+                this.fileListData = arrData;
             }
         },
         computed: {
@@ -375,15 +407,16 @@
             manageId(newValue) {
                 this.initDB("manage" + newValue).then(() => {
                     if(!this.fileListData.length){
-//                        this.scanFile();
-//                        this.getDBData();
+                        this.scanFile().then(() => {
+                            this.getDBData();
+                        });
                     }
                 });
             }
         },
         mounted: function () {
 
-            this.fileListData = b;
+//            this.fileListData = b;
         }
 
     }
@@ -487,6 +520,7 @@
         border-radius: 5px;
         padding: 7px 20px;
         border: 1px solid #efefef;
+        z-index: 100;
     }
     .extend-box > .nav-ico{
         border: 8px solid transparent;
