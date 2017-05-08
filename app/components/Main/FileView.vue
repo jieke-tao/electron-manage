@@ -1,15 +1,20 @@
 <template>
     <div class="fileView-box">
         <video-view :src="url" v-if="fileDetail.type=='video'"></video-view>
+        <audio-view :src="url" v-if="fileDetail.type=='music'"></audio-view>
         <img-view :src="url" v-if="fileDetail.type=='image'"></img-view>
+        <other-view :detail="fileDetail" v-if="fileDetail.type=='others' || fileDetail.type=='document' || fileDetail.type=='compress'"></other-view>
     </div>
 </template>
 <script>
 
 
     import uri from '../../connect/readLocalFile/index';
-    import VideoView from './VideoView.vue';
+    import videoView from './VideoView.vue';
+    import audioView from './AudioView.vue';
     import imgView from './ImageView.vue';
+    import otherView from './otherView.vue';
+
 
     export default{
         name: "fileView",
@@ -17,8 +22,15 @@
             fileDetail: Object
         },
         components:{
-            VideoView,
-            imgView
+            videoView,
+            imgView,
+            audioView,
+            otherView
+        },
+        watch: {
+            "fileDetail.type": function (newValue) {
+                console.log(newValue);
+            }
         },
         computed: {
             url(){
@@ -35,7 +47,8 @@
         align-items: center;
         justify-content: center;
     }
-    .fileView-box video{
+    .fileView-box video,
+    .fileView-box audio{
         width: 100%;
         max-height: 100%;
     }

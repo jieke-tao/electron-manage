@@ -71,14 +71,7 @@
             </div>
         </div>
         <div class="content-right">
-
-            <!--<div id="a">-->
-                <file-view :file-detail="activeFile" v-if="activeFile.type"></file-view>
-                <!--<img v-if="activeFile.type=='image'" :src="activeFile.parentPath" />-->
-                <!--<img src="file:///E:/%E5%9B%BE%E5%8C%85/3d11411f-606a-4dc6-bb62-72ca1871be65.jpg" />-->
-                <!--<video v-if="activeFile.type=='video'" :src="'http://localhost:8120/aa?path='+activeFile.sourcePath" controls autoplay></video>-->
-                <!--<video v-if="activeFile.type=='video'" :src="'localhost:8000/getLocal?url='+activeFile.sourcePath"></video>-->
-            <!--</div>-->
+            <file-view :file-detail="activeFile" v-if="activeFile.type"></file-view>
         </div>
     </div>
 </template>
