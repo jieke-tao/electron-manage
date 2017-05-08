@@ -68,7 +68,7 @@
                     </div>
                     <div class="source-list">
                         <Tag
-                            v-for="(item, index) of sourceFolder"
+                            v-for="(item, index) in sourceFolder"
                             @on-close="deleteSourceFolder(index)"
                             color="blue"
                             closable>{{item}}</Tag>
@@ -239,7 +239,7 @@
         margin-bottom: 20px;
     }
     .manege-list{
-        width: 35%;
+        width: 270px;
         height: 100%;
         float: left;
     }
@@ -258,7 +258,7 @@
         font-size: 16px;
     }
     .manage-detail{
-        width: 65%;
+        width: calc(100% - 270px);
         height: 100%;
         border-left: 1px solid #cccccc;
         float: left;

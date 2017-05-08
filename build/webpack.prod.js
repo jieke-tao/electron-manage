@@ -14,7 +14,7 @@ const config = require('./config')
 if (config.electron) {
 } else {
     // use source-map in web app mode
-    base.devtool = 'source-map';
+    // base.devtool = 'source-map';
 }
 
 // use hash filename to support long-term caching
@@ -27,7 +27,7 @@ base.plugins.push(
         'process.env.NODE_ENV': JSON.stringify('production')
     }),
     new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true,
+        sourceMap: false,
         compress: {
             warnings: false
         },

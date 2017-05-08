@@ -67,26 +67,32 @@
                 </dl>
             </div>
             <div v-show="!showSystemSetting" class="content-detail">
-                <tree v-for="item in fileListData" :key="item.createTime" :data="item"></tree>
+                <tree v-for="item in fileListData" :key="item.createTime" @on-select="activeItem" :data="item"></tree>
             </div>
         </div>
         <div class="content-right">
 
-            <div id="a"></div>
+            <!--<div id="a">-->
+                <file-view :file-detail="activeFile" v-if="activeFile.type"></file-view>
+                <!--<img v-if="activeFile.type=='image'" :src="activeFile.parentPath" />-->
+                <!--<img src="file:///E:/%E5%9B%BE%E5%8C%85/3d11411f-606a-4dc6-bb62-72ca1871be65.jpg" />-->
+                <!--<video v-if="activeFile.type=='video'" :src="'http://localhost:8120/aa?path='+activeFile.sourcePath" controls autoplay></video>-->
+                <!--<video v-if="activeFile.type=='video'" :src="'localhost:8000/getLocal?url='+activeFile.sourcePath"></video>-->
+            <!--</div>-->
         </div>
     </div>
 </template>
 <script>
 
     import tree from '../components/main/Tree.vue'
+    import fileView from '../components/Main/FileView.vue'
     import store from 'vuex'
     import { ipcRenderer as ipc } from 'electron'
     import { computeFileType } from '../utils'
-    import b from '../../tests/12';
-
     export default{
         components: {
-            tree
+            tree,
+            fileView
         },
         data () {
             return {
@@ -101,12 +107,16 @@
                     instance: {}
                 },
                 fileListDataBak: [],
-                fileListData: []
+                fileListData: [],
+                activeFile: {}
             }
         },
         methods: {
             rootClick() {
                 this.menuBarActive = "";
+            },
+            activeItem(item) {
+                this.activeFile = item;
             },
             menuBarClick(num) {
                 if(this.menuBarActive === num){
@@ -377,13 +387,10 @@
                 if(!(arrData && arrData.length)){
                     arrData = JSON.parse(this.fileListDataBak);
                 }
-                console.log(arrData);
                 arrData = this.filterFileList(arrData);
-                console.log(arrData);
                 if(this.structureType.indexOf("dir") !== -1){
                     arrData = this.arrDataToTree(arrData);
                 }
-                console.log(arrData);
                 this.fileListData = arrData;
             }
         },
@@ -412,11 +419,12 @@
                         });
                     }
                 });
+            },
+            activeFile(newValue) {
             }
         },
         mounted: function () {
 
-//            this.fileListData = b;
         }
 
     }
@@ -426,7 +434,7 @@
         display: flex;
     }
     .menu-left{
-        width: 30%;
+        width: 270px;
         height: 100%;
         float: left;
         background-color: #f5f5f5;
@@ -444,13 +452,14 @@
         right: -12px;
         top: 50%;
         margin-top: -46px;
+        z-index: 1000;
         cursor: pointer;
     }
     .menu-left .expand-ico:hover{
         background: url("../asset/img/expand-menu-hover.png") center no-repeat;
     }
     .content-right{
-        width: 70%;
+        width: calc(100% - 270px);
         height: 100%;
         float: left;
         flex: 1;

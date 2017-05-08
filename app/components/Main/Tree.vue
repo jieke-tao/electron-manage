@@ -1,13 +1,19 @@
 <template>
     <div :style="{ 'paddingLeft': deep * 10 + 'px' }">
         <div class="tree-box">
-            <div class="tree-folder" :title="data.sourcePath" @click="switchChildOpen">
-                <i v-if="data.ext == 'dir'" :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
+            <div class="tree-folder" :title="data.sourcePath" @click="focusItem(data)">
+                <i v-if="data.ext == 'dir'"
+                   :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
                 <i v-else :class="['ivu-icon',computerIco(data.type)]"></i>
                 <span class="tree-name" v-html="data.name"></span>
-                <div></div>
             </div>
-            <tree v-if="data.children && data.children.length" v-for="item in data.children" :key="item.createTime" v-show="open" :data="item" :deep="deep+1"></tree>
+            <tree v-if="data.children && data.children.length"
+                  v-for="item in data.children"
+                  :key="item.createTime"
+                  v-show="open"
+                  :data="item"
+                  :deep="deep+1"
+                  @on-select="focusItem"></tree>
         </div>
     </div>
 </template>
@@ -28,8 +34,12 @@
             }
         },
         methods: {
-            switchChildOpen() {
-                this.open = !this.open;
+            focusItem(item) {
+                if(item.ext == "dir"){
+                    this.open = !this.open;
+                }else{
+                    this.$emit("on-select",item);
+                }
             },
             computerIco(type) {
                 switch (type){
@@ -37,7 +47,7 @@
                         return "ivu-icon-image";
                         break;
                     case "video":
-                        return "ivu-icon-image";
+                        return "ivu-icon-social-youtube";
                         break;
                     case "music":
                         return "ivu-icon-music-note";
