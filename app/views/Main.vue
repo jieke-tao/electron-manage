@@ -1,6 +1,6 @@
 <template>
     <div class="cleanfix root-node" @click="rootClick">
-        <div class="menu-left" :style="{'marginLeft': menuBarShow ? '0' : '-30%'}">
+        <div class="menu-left" :style="{'marginLeft': menuBarShow ? '0' : '-250px'}">
             <i class="expand-ico" v-show="!menuBarShow" @click="menuBarShow = true"></i>
             <ul class="menu-bar cleanfix">
                 <li title="收起侧边栏" @click="menuBarShow = false">
@@ -67,11 +67,19 @@
                 </dl>
             </div>
             <div v-show="!showSystemSetting" class="content-detail">
-                <tree v-for="item in fileListData" :key="item.sourcePath" @on-select="activeItem" :data="item"></tree>
+                <tree v-for="item in fileListData" :key="item.sourcePath" @on-select="activeItem" :data="item" :active="activeFile.sourcePath"></tree>
             </div>
         </div>
         <div class="content-right">
             <file-view :file-detail="activeFile" v-if="activeFile.type"></file-view>
+        </div>
+
+        <div class="mask" v-if="isLoading">
+            <div class="loader-box">
+                <div class="loader"></div>
+                <br/>
+                加载中......
+            </div>
         </div>
     </div>
 </template>
@@ -80,9 +88,9 @@
     import tree from '../components/main/Tree.vue'
     import fileView from '../components/Main/FileView.vue'
     import store from 'vuex'
-    import { ipcRenderer as ipc } from 'electron'
-    import { remote } from 'electron';
+    import { ipcRenderer as ipc, remote } from 'electron'
     import { computeFileType } from '../utils'
+
     export default{
         components: {
             tree,
@@ -90,6 +98,7 @@
         },
         data () {
             return {
+                isLoading: true,
                 manageId: "",
                 menuBarShow: true,
                 menuBarActive: "",
@@ -357,10 +366,11 @@
                 };
             },
             //从数据库提取所有数据
-            getDBData() {
+            getDBData(callback) {
                 this.searchValueByArea("fileBase").then(result => {
                     this.fileListDataBak = JSON.stringify(result);//存储成字符串，避免引址
                     this.setFileListData("",result);
+                    callback();
                 });
             },
             //按条件过滤
@@ -431,13 +441,13 @@
                 this.initDB("manage" + newValue).then(() => {
                     if(!this.fileListData.length){
                         this.scanFile().then(() => {
-                            this.getDBData();
+                            this.getDBData( () => {
+                                this.isLoading = false;
+                            });
                         });
                     }
                 });
             },
-            activeFile(newValue) {
-            }
         },
         mounted: function () {
 
@@ -446,11 +456,8 @@
     }
 </script>
 <style scoped>
-    .root-node{
-        display: flex;
-    }
     .menu-left{
-        width: 270px;
+        width: 250px;
         height: 100%;
         float: left;
         background-color: #f5f5f5;
@@ -475,7 +482,7 @@
         background: url("../asset/img/expand-menu-hover.png") center no-repeat;
     }
     .content-right{
-        width: calc(100% - 270px);
+        width: calc(100% - 250px);
         height: 100%;
         float: left;
         flex: 1;

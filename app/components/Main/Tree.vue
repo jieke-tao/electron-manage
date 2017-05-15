@@ -1,7 +1,7 @@
 <template>
     <div :style="{ 'paddingLeft': deep * 10 + 'px' }">
         <div class="tree-box">
-            <div class="tree-folder" :title="data.sourcePath" @click="focusItem(data)">
+            <div :class="['tree-folder',{ 'active' : active == data.sourcePath}]" :title="data.sourcePath" @click="focusItem(data)">
                 <i v-if="data.ext == 'dir'"
                    :class="['ivu-icon',open ? 'ivu-icon-android-folder-open' : 'ivu-icon-android-folder' ]"></i>
                 <i v-else :class="['ivu-icon',computerIco(data.type)]"></i>
@@ -13,6 +13,7 @@
                   v-show="open"
                   :data="item"
                   :deep="deep+1"
+                  :active="active"
                   @on-select="focusItem"></tree>
         </div>
     </div>
@@ -25,6 +26,9 @@
             deep: {
                 type: Number,
                 default: 0
+            },
+            active: {
+                type: String
             },
             data: Object
         },
@@ -85,5 +89,8 @@
     }
     .tree-folder{
         white-space: nowrap;
+    }
+    .tree-folder.active{
+        color: #00c261;
     }
 </style>

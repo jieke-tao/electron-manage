@@ -14,4 +14,4 @@
 
 MIT
 
-Copyright (c) 2017 404-NOTFOUND
+Copyright (c) 2017 404-NF

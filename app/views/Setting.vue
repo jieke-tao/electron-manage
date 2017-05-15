@@ -63,10 +63,6 @@
     }
 </script>
 <style>
-    .root-node{
-        display: flex;
-        width: 100%;
-    }
     .setting-root{
         flex-direction: column;
     }

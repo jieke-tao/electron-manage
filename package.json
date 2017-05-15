@@ -1,6 +1,6 @@
 {
     "name": "electron-manage",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "description": "A Electron & Vue.js application for file manage",
     "main": "main.js",
     "scripts": {
@@ -10,7 +10,7 @@
         "dev": "node build/server.js",
         "app": "cross-env NODE_ENV=development electron ."
     },
-    "author": "404",
+    "author": "404-NF",
     "license": "MIT",
     "dependencies": {
         "babel-runtime": "^6.23.0",

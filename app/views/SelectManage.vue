@@ -1,6 +1,6 @@
 <template>
     <div class="cleanfix root-node">
-        <ul class="manege-list">
+        <ul class="manage-list">
             <li v-for="(item,index) of manageArr"
                 :class="{'active': item.manageId == focusManageDetail.manageId}"
                 @click="focusManage(index)">
@@ -19,33 +19,35 @@
                     <Button icon="trash-b" @click="deleteManage" v-show="manageArr.length">删除</Button>
                 </div>
             </div>
-            <ul class="detail-list" v-show="focusManageDetail.manageId">
-                <li>
-                    <span class="title-text">管理层名：</span>
-                    <span class="content-text" v-text="focusManageDetail.manageName"></span>
-                </li>
-                <li>
-                    <span class="title-text">源文件夹：</span>
-                    <span class="content-text" :title="focusManageDetail.sortFolder">{{ focusManageDetail.sortFolder | toString }}</span>
-                </li>
-                <li>
-                    <span class="title-text">目标文件夹：</span>
-                    <span class="content-text" v-text="focusManageDetail.targetFolder" :title="focusManageDetail.targetFolder"></span>
-                </li>
-                <li>
-                    <span class="title-text">上次使用：</span>
-                    <span class="content-text">{{ focusManageDetail.lastOpenTime | formatDate(true,"/") }}</span>
-                </li>
-                <li>
-                    <span class="title-text">备注：</span>
-                    <span class="content-text" v-text="focusManageDetail.remark"></span>
-                </li>
-                <li>
-                    <span class="title-text">主要标签：</span>
-                    <tag v-for="item in focusManageDetail.mainTag"></tag>
-                    <span class="content-text" v-if="!(focusManageDetail.mainTag && focusManageDetail.mainTag.length)">尚未开始整理，无法统计</span>
-                </li>
-            </ul>
+            <div class="detailList-box">
+                <ul class="detail-list" v-show="focusManageDetail.manageId">
+                    <li>
+                        <span class="title-text">管理层名：</span>
+                        <span class="content-text" v-text="focusManageDetail.manageName"></span>
+                    </li>
+                    <li>
+                        <span class="title-text">源文件夹：</span>
+                        <span class="content-text" :title="focusManageDetail.sortFolder">{{ focusManageDetail.sortFolder | toString }}</span>
+                    </li>
+                    <li>
+                        <span class="title-text">目标文件夹：</span>
+                        <span class="content-text" v-text="focusManageDetail.targetFolder" :title="focusManageDetail.targetFolder"></span>
+                    </li>
+                    <li>
+                        <span class="title-text">上次使用：</span>
+                        <span class="content-text">{{ focusManageDetail.lastOpenTime | formatDate(true,"/") }}</span>
+                    </li>
+                    <li>
+                        <span class="title-text">备注：</span>
+                        <span class="content-text" v-text="focusManageDetail.remark"></span>
+                    </li>
+                    <li>
+                        <span class="title-text">主要标签：</span>
+                        <tag v-for="item in focusManageDetail.mainTag"></tag>
+                        <span class="content-text" v-if="!(focusManageDetail.mainTag && focusManageDetail.mainTag.length)">尚未开始整理，无法统计</span>
+                    </li>
+                </ul>
+            </div>
         </div>
         <Modal
             v-model="showAdd"
@@ -167,18 +169,26 @@
                 let manageId = this.focusManageDetail.manageId;
                 let manageIndex = -1;
                 let that = this;
+                let delName = "";
                 this.manageArr.some(function(v,i){
                     if(v.manageId == manageId){
                         manageIndex = i;
+                        delName = v.name;
                         return true;
                     }
                 });
-                this.manageArr.splice(manageIndex,1);
-                this.$store.dispatch("delManage",manageIndex).then(function(){
-                    ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
-                });
+                if(manageIndex != -1){
+                    this.$store.dispatch("delManage",manageIndex).then(() =>{
+                        ipc.send("saveConfigFile","softConfig.config",that.$store.getters.getSoftConfig);
+                        this.manageArr.splice(manageIndex,1);
+                        this.$Notice.open({
+                            title: `${delName} 管理层已删除`
+                        });
+                    });
+                }
             },
             openManage() {
+                ipc.send("fileStat",);
                 this.$router.push({
                     path: "main",
                     query: {
@@ -226,46 +236,38 @@
 </script>
 <style>
 
-    .cleanfix:after{
-        content: "";
-        display: block;
-        clear: both;
-
-    }
-    .float-right{
-        float: right;
-    }
     .form-group{
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
-    .manege-list{
-        width: 270px;
+    .manage-list{
+        width: 250px;
         height: 100%;
-        float: left;
     }
-    .manege-list > li{
+    .manage-list > li{
         padding: 10px;
         border-bottom: 1px solid #eee;
         cursor: pointer;
         border-left: 3px solid transparent;
     }
-    .manege-list > li.active{
+    .manage-list > li.active{
         border-left-color: #3091f2;
     }
-    .manege-list > li > a{
+    .manage-list > li > a{
         padding-bottom: 7px;
         display: block;
         font-size: 16px;
     }
     .manage-detail{
-        width: calc(100% - 270px);
-        height: 100%;
+        flex: 1;
         border-left: 1px solid #cccccc;
-        float: left;
         padding: 15px;
+        display: flex;
+        flex-direction: column;
     }
     .source-list{
         margin-top: 10px;
+        height: 55px;
+        overflow: auto;
     }
     .remark-box{
         float: left;
@@ -283,12 +285,17 @@
         text-overflow: ellipsis;
         color: #aaaaaa;
     }
+    .detailList-box{
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+    }
     .detail-list{
-        margin-top: 100px;
-        margin-left: 25px;
+        width: 550px;
     }
     .detail-list > li{
-        margin-bottom: 25px;
+        padding: 15px 0;
         white-space: nowrap;
     }
     .title-text{
@@ -308,5 +315,6 @@
         vertical-align: middle;
         text-overflow: ellipsis;
         border-bottom: 1px solid #cccccc;
+        max-width: 400px;
     }
 </style>

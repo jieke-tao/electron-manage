@@ -25,7 +25,7 @@ if (isDev) {
 }
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 900, height: 550});
+    mainWindow = new BrowserWindow({width: 960, height: 570});
 
     // and load the index.html of the app.
      const url = isDev ? `http://localhost:${config.port}` : `file://${__dirname}/dist/index.html`;
