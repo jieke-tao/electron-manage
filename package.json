@@ -1,6 +1,6 @@
 {
     "name": "electron-manage",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "description": "A Electron & Vue.js application for file manage",
     "main": "main.js",
     "scripts": {

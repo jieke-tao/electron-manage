@@ -2,7 +2,7 @@
     <div class="cleanfix root-node setting-root">
         <div class="setting-area">
             <ul class="menu-left">
-                <li :class="settingId == 1 ? 'active' : ''" @click="switchSetting(1)">管理层编辑</li>
+                <li :class="settingId == 1 ? 'active' : ''" @click="switchSetting(1)">管理层设置</li>
                 <li :class="settingId == 2 ? 'active' : ''" @click="switchSetting(2)">整理设置</li>
                 <li :class="settingId == 3 ? 'active' : ''" @click="switchSetting(3)">标签设置</li>
                 <li :class="settingId == 4 ? 'active' : ''" @click="switchSetting(4)">软件设置</li>

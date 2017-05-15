@@ -4,9 +4,14 @@
 # 进度
 该项目仍处于开发阶段，尚不可使用
 
-# 进度图
+!["进度图"](./doc/electron-manage.png)
 
-<img src="./doc/img/select.png" width="50%" /><img src="./doc/img/add.png" width="50%" />
-<img src="./doc/img/chose-flode.png" width="50%" /><img src="./doc/img/main-setting.png" width="50%" />
-<img src="./doc/img/scan-file.png" width="50%" /><img src="./doc/img/img-view.png" width="50%" />
-<img src="./doc/img/video-view.png" width="50%" />
+# 预览图
+
+[点击这里](./doc/img)查看目前已开发的界面图
+
+# License
+
+MIT
+
+Copyright (c) 2017 404-NOTFOUND
