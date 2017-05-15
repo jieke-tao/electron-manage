@@ -9,7 +9,7 @@
             </div>
             <tree v-if="data.children && data.children.length"
                   v-for="item in data.children"
-                  :key="item.createTime"
+                  :key="item.sourcePath"
                   v-show="open"
                   :data="item"
                   :deep="deep+1"

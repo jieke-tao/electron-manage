@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import selectManage from '../views/SelectManage.vue'
 import main from '../views/Main.vue'
+import setting from '../views/Setting.vue'
 import iView from 'iview'
 import 'iview/dist/styles/iview.css'
 
@@ -18,6 +19,10 @@ export default new Router({
         {
             path: '/main',
             component: main
-        }
+        },
+        {
+            path: '/setting',
+            component: setting
+        },
     ]
 })

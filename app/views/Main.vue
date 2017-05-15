@@ -45,10 +45,10 @@
                     <dd>更新文档</dd>
                     <dd>归档</dd>
                     <!--<hr />-->
-                    <dd>管理层编辑</dd>
-                    <dd>整理设置</dd>
-                    <dd>标签设置</dd>
-                    <dd>软件设置</dd>
+                    <dd @click="openModelSetting(1)">管理层编辑</dd>
+                    <dd @click="openModelSetting(2)">整理设置</dd>
+                    <dd @click="openModelSetting(3)">标签设置</dd>
+                    <dd @click="openModelSetting(4)">软件设置</dd>
                 </dl>
                 <dl class="menu-list">
                     <dt>
@@ -67,7 +67,7 @@
                 </dl>
             </div>
             <div v-show="!showSystemSetting" class="content-detail">
-                <tree v-for="item in fileListData" :key="item.createTime" @on-select="activeItem" :data="item"></tree>
+                <tree v-for="item in fileListData" :key="item.sourcePath" @on-select="activeItem" :data="item"></tree>
             </div>
         </div>
         <div class="content-right">
@@ -81,6 +81,7 @@
     import fileView from '../components/Main/FileView.vue'
     import store from 'vuex'
     import { ipcRenderer as ipc } from 'electron'
+    import { remote } from 'electron';
     import { computeFileType } from '../utils'
     export default{
         components: {
@@ -105,6 +106,28 @@
             }
         },
         methods: {
+            openModelSetting(id) {
+
+                ipc.once("createWinEnd",function (e) {
+
+                });
+                ipc.send("createNewWin",
+                    {
+                        urlPath: "setting?id=" + id,
+                        name: "setting",
+                    },
+                    {
+                        title: "设置",
+                        parent: "mainWindow",
+                        modal: true,
+                        width: 700,
+                        height: 500,
+                        minimizable: false,
+                        maximizable : false,
+                        autoHideMenuBar: true
+                    }
+                );
+            },
             rootClick() {
                 this.menuBarActive = "";
             },

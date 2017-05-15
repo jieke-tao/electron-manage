@@ -2,8 +2,10 @@
  * Created by ty on 2017/4/4.
  */
 
+const electron = require('electron');
 const configOperate = require('./config-operate');
 const fs = require('fs');
+const BrowserWindow = electron.BrowserWindow;
 
 let eventList = {
     readConfigFile: function (event,path) {
@@ -26,6 +28,14 @@ let eventList = {
             result = result.concat(configOperate.scanFolder(folder,[]));
         },this);
         event.sender.send("scanFolderResult", result);
+    },
+    createNewWin: function (event,winOpt,broOpt) {
+        broOpt.parent = global[broOpt.parent];
+        let newWin = new BrowserWindow(broOpt);
+        newWin.loadURL(`${global.url}#/${winOpt.urlPath}`);
+        global[winOpt.name] = newWin;
+
+        event.sender.send("createWinEnd");
     }
 };
 

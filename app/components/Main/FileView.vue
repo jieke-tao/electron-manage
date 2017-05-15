@@ -27,11 +27,6 @@
             audioView,
             otherView
         },
-        watch: {
-            "fileDetail.type": function (newValue) {
-                console.log(newValue);
-            }
-        },
         computed: {
             url(){
                 return uri + "?path=" + this.fileDetail.sourcePath + "&ext=" + this.fileDetail.ext + "&type=" + this.fileDetail.type;

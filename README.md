@@ -8,4 +8,5 @@
 
 <img src="./doc/img/select.png" width="50%" /><img src="./doc/img/add.png" width="50%" />
 <img src="./doc/img/chose-flode.png" width="50%" /><img src="./doc/img/main-setting.png" width="50%" />
-<img src="./doc/img/scan-file.png" width="50%" />
+<img src="./doc/img/scan-file.png" width="50%" /><img src="./doc/img/img-view.png" width="50%" />
+<img src="./doc/img/video-view.png" width="50%" />

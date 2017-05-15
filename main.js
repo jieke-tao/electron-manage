@@ -29,7 +29,6 @@ function createWindow() {
 
     // and load the index.html of the app.
      const url = isDev ? `http://localhost:${config.port}` : `file://${__dirname}/dist/index.html`;
-    //const url = `file://${__dirname}/dist/index.html`;
     mainWindow.loadURL(url);
 
     // Open the DevTools.
@@ -49,10 +48,14 @@ function createWindow() {
         // when you should delete the corresponding element.
         mainWindow = null
     });
+
     let eventName = Object.keys(eventList);
     eventName.forEach(function (name) {
-        ipc.on(name, eventList[name]);
-    });
+        ipc.on(name,eventList[name]);
+    },this);
+
+    global.mainWindow = mainWindow;
+    global.url = url;
 
 }
 
